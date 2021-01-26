@@ -3,7 +3,8 @@ package com.ocsp.security.parser;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import com.ocsp.security.model.Certificate;
 import com.ocsp.security.model.OCSPResponseData;
 import com.ocsp.security.model.Response;
@@ -17,6 +18,8 @@ import org.bouncycastle.ocsp.SingleResp;
 
 public class OCSPParser {
 
+    private static final Logger logger = Logger.getLogger(OCSPParser.class.getCanonicalName());
+
     private static OCSPResponseData ocspResponseData = new OCSPResponseData();
     private static List<Response> responses = new ArrayList<Response>();
     private static Certificate certificate = new Certificate();
@@ -29,9 +32,9 @@ public class OCSPParser {
             // OCSP response is parsed into BouncyCastle's OCSPResp Object
             val ocspResp = new OCSPResp(ocspResponse);
 
-            final Object ocspResponseObject = ocspResp.getResponseObject();
+            val ocspResponseObject = ocspResp.getResponseObject();
             if ((ocspResponseObject instanceof BasicOCSPResp)) {
-                final BasicOCSPResp basicOcspResponse = (BasicOCSPResp) ocspResp.getResponseObject();
+                val basicOcspResponse = (BasicOCSPResp) ocspResp.getResponseObject();
 
                 ocspResponseData.setStatus(getOCSPStatus(ocspResp.getStatus()));
                 ocspResponseData.setVersion(basicOcspResponse.getVersion());
@@ -60,6 +63,7 @@ public class OCSPParser {
                 return ocspResponseData;
             }
         } catch (Exception e) {
+            logger.log(Level.SEVERE, e.getMessage(), e.getCause());
             return null;
         }
         return null;
@@ -72,26 +76,12 @@ public class OCSPParser {
     private String getOCSPStatus(int ocspResponseStatus) {
         String status;
         switch (ocspResponseStatus) {
-            case 0:
-                status = "Successful";
-                break;
-            case 1:
-                status = "MalformedRequest";
-                break;
-            case 2:
-                status = "InternalError";
-                break;
-            case 3:
-                status = "TryLater";
-                break;
-            case 5:
-                status = "sigRequired";
-                break;
-            case 6:
-                status = "unauthorized";
-                break;
-            default:
-                status = "unauthorized";
+            case 0 -> status = "Successful";
+            case 1 -> status = "MalformedRequest";
+            case 2 -> status = "InternalError";
+            case 3 -> status = "TryLater";
+            case 5 -> status = "sigRequired";
+            default -> status = "unauthorized";
         }
         return status;
     }
